@@ -5,11 +5,10 @@ import FoundationNetworking
 
 public protocol Connector {
 	var events: AsyncThrowingStream<ServerEvent, Error> { get }
-	var onDisconnect: (@Sendable () -> Void)? { get }
 
-	init(connectingTo request: URLRequest) async throws
+	init(request: URLRequest)
+
+	func connect(onDisconnect: (@Sendable () -> Void)?) async throws
 
 	func send(event: ClientEvent) async throws
-
-	func onDisconnect(_ action: (@Sendable () -> Void)?)
 }

@@ -57,7 +57,7 @@ public final class Conversation: @unchecked Sendable {
 		} }
 	}
 
-	private init(client: RealtimeAPI) {
+    private init(client: RealtimeAPI) {
 		self.client = client
 		(errors, errorStream) = AsyncStream.makeStream(of: ServerError.self)
 
@@ -73,16 +73,11 @@ public final class Conversation: @unchecked Sendable {
 				self?.connected = false
 			}
 		}
-
-        client.onDisconnect = { [weak self] in
-            guard let self else { return }
-
-            Task { @MainActor in
-                self.connected = false
-            }
+        
+        Task { [weak self] in
+            await self?._connect()
+            self?._keepIsPlayingPropertyUpdated()
         }
-
-        _keepIsPlayingPropertyUpdated()
 	}
 
 	deinit {
@@ -506,4 +501,14 @@ extension Conversation {
 			self?._keepIsPlayingPropertyUpdated()
 		}
 	}
+    
+    private func _connect() async {
+        try? await client.connect { [weak self] in
+            guard let self else { return }
+            
+            Task { @MainActor in
+                self.connected = false
+            }
+        }
+    }
 }

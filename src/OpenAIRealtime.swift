@@ -8,11 +8,6 @@ enum RealtimeAPIError: Error {
 }
 
 public final class RealtimeAPI: NSObject {
-	public var onDisconnect: (@Sendable () -> Void)? {
-		get { connector.onDisconnect }
-		set { connector.onDisconnect(newValue) }
-	}
-
 	public var events: AsyncThrowingStream<ServerEvent, Error> {
 		connector.events
 	}
@@ -25,6 +20,10 @@ public final class RealtimeAPI: NSObject {
 
 		super.init()
 	}
+    
+    public func connect(onDisconnect: (@Sendable () -> Void)?) async throws {
+        try await connector.connect(onDisconnect: onDisconnect)
+    }
 
 	public func send(event: ClientEvent) async throws {
 		try await connector.send(event: event)
@@ -35,7 +34,7 @@ public final class RealtimeAPI: NSObject {
 extension RealtimeAPI {
 	/// Connect to the OpenAI WebSocket Realtime API with the given request.
 	static func webSocket(connectingTo request: URLRequest) -> RealtimeAPI {
-		RealtimeAPI(connector: WebSocketConnector(connectingTo: request))
+		RealtimeAPI(connector: WebSocketConnector(request: request))
 	}
 
 	/// Connect to the OpenAI WebSocket Realtime API with the given authentication token and model.
@@ -51,7 +50,7 @@ extension RealtimeAPI {
 
 	/// Connect to the OpenAI WebRTC Realtime API with the given request.
 	static func webRTC(connectingTo request: URLRequest) async throws -> RealtimeAPI {
-		try RealtimeAPI(connector: await WebRTCConnector(connectingTo: request))
+		try RealtimeAPI(connector: await WebRTCConnector(request: request))
 	}
 
 	/// Connect to the OpenAI WebRTC Realtime API with the given authentication token and model.

@@ -4,12 +4,13 @@ import FoundationNetworking
 #endif
 
 public final class WebSocketConnector: Connector {
-	public private(set) var onDisconnect: (@Sendable () -> Void)? = nil
+	private var onDisconnect: (@Sendable () -> Void)? = nil
 	public let events: AsyncThrowingStream<ServerEvent, Error>
 
-	private let task: Task<Void, Never>
-	private let webSocket: URLSessionWebSocketTask
+	private var task: Task<Void, Never>?
+	private var webSocket: URLSessionWebSocketTask?
 	private let stream: AsyncThrowingStream<ServerEvent, Error>.Continuation
+	private let request: URLRequest
 
 	private let encoder: JSONEncoder = {
 		let encoder = JSONEncoder()
@@ -17,10 +18,18 @@ public final class WebSocketConnector: Connector {
 		return encoder
 	}()
 
-	public init(connectingTo request: URLRequest) {
+	public init(request: URLRequest) {
 		let (events, stream) = AsyncThrowingStream.makeStream(of: ServerEvent.self)
+		self.events = events
+		self.stream = stream
+		self.request = request
+	}
 
+	public func connect(onDisconnect: (@Sendable () -> Void)?) async throws {
+		self.onDisconnect = onDisconnect
+		
 		let webSocket = URLSession.shared.webSocketTask(with: request)
+		self.webSocket = webSocket
 		webSocket.resume()
 
 		task = Task.detached { [webSocket, stream] in
@@ -52,26 +61,23 @@ public final class WebSocketConnector: Connector {
 			}
 
 			webSocket.cancel(with: .goingAway, reason: nil)
+            stream.finish()
+            onDisconnect?()
 		}
-
-		self.events = events
-		self.stream = stream
-		self.webSocket = webSocket
 	}
 
 	deinit {
-		webSocket.cancel(with: .goingAway, reason: nil)
-		task.cancel()
+		webSocket?.cancel(with: .goingAway, reason: nil)
+		task?.cancel()
 		stream.finish()
 		onDisconnect?()
 	}
 
 	public func send(event: ClientEvent) async throws {
+		guard let webSocket = webSocket else {
+			throw RealtimeAPIError.invalidMessage // or create a more appropriate error
+		}
 		let message = try URLSessionWebSocketTask.Message.string(String(data: encoder.encode(event), encoding: .utf8)!)
 		try await webSocket.send(message)
-	}
-
-	public func onDisconnect(_ action: (@Sendable () -> Void)?) {
-		onDisconnect = action
 	}
 }
