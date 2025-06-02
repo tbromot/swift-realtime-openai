@@ -7,8 +7,8 @@ enum RealtimeAPIError: Error {
 	case invalidMessage
 }
 
-public final class RealtimeAPI: NSObject, Sendable {
-	@MainActor public var onDisconnect: (@Sendable () -> Void)? {
+public final class RealtimeAPI: NSObject {
+	public var onDisconnect: (@Sendable () -> Void)? {
 		get { connector.onDisconnect }
 		set { connector.onDisconnect(newValue) }
 	}

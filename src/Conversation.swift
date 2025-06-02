@@ -74,17 +74,15 @@ public final class Conversation: @unchecked Sendable {
 			}
 		}
 
-		Task { @MainActor in
-			client.onDisconnect = { [weak self] in
-				guard let self else { return }
+        client.onDisconnect = { [weak self] in
+            guard let self else { return }
 
-				Task { @MainActor in
-					self.connected = false
-				}
-			}
+            Task { @MainActor in
+                self.connected = false
+            }
+        }
 
-			_keepIsPlayingPropertyUpdated()
-		}
+        _keepIsPlayingPropertyUpdated()
 	}
 
 	deinit {

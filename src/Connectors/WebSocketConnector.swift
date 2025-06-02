@@ -3,8 +3,8 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public final class WebSocketConnector: Connector, Sendable {
-	@MainActor public private(set) var onDisconnect: (@Sendable () -> Void)? = nil
+public final class WebSocketConnector: Connector {
+	public private(set) var onDisconnect: (@Sendable () -> Void)? = nil
 	public let events: AsyncThrowingStream<ServerEvent, Error>
 
 	private let task: Task<Void, Never>
@@ -71,7 +71,7 @@ public final class WebSocketConnector: Connector, Sendable {
 		try await webSocket.send(message)
 	}
 
-	@MainActor public func onDisconnect(_ action: (@Sendable () -> Void)?) {
+	public func onDisconnect(_ action: (@Sendable () -> Void)?) {
 		onDisconnect = action
 	}
 }

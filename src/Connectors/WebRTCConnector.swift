@@ -4,14 +4,14 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public final class WebRTCConnector: NSObject, Connector, Sendable {
+public final class WebRTCConnector: NSObject, Connector {
 	enum WebRTCError: Error {
 		case failedToCreateDataChannel
 		case failedToCreatePeerConnection
 		case badServerResponse
 	}
 
-	@MainActor public private(set) var onDisconnect: (@Sendable () -> Void)? = nil
+	public private(set) var onDisconnect: (@Sendable () -> Void)? = nil
 	public let events: AsyncThrowingStream<ServerEvent, Error>
 
 	private let connection: RTCPeerConnection
@@ -92,7 +92,7 @@ public final class WebRTCConnector: NSObject, Connector, Sendable {
 		try dataChannel.sendData(RTCDataBuffer(data: encoder.encode(event), isBinary: false))
 	}
 
-	@MainActor public func onDisconnect(_ action: (@Sendable () -> Void)?) {
+	public func onDisconnect(_ action: (@Sendable () -> Void)?) {
 		onDisconnect = action
 	}
 }
