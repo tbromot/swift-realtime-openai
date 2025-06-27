@@ -18,10 +18,16 @@ public enum Item: Identifiable, Equatable, Sendable {
 		public var audio: Data
 		/// The transcript of the audio.
 		public var transcript: String?
+        
+        public var timestamp: TimeInterval? = nil
+        
+        public var duration: TimeInterval? = nil
 
-		public init(audio: Data = Data(), transcript: String? = nil) {
+        public init(audio: Data = Data(), transcript: String? = nil, timestamp: TimeInterval? = nil, duration: TimeInterval? = nil) {
 			self.audio = audio
 			self.transcript = transcript
+            self.timestamp = timestamp
+            self.duration = duration
 		}
 	}
 
