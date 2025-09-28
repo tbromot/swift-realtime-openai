@@ -492,13 +492,13 @@ extension Conversation {
 	/// So, instead, we observe the property and update `isPlaying` on the main actor.
 	private func _keepIsPlayingPropertyUpdated() {
 		withObservationTracking { _ = queuedSamples.isEmpty } onChange: { [weak self] in
-			Task { @MainActor in
-				guard let self else { return }
-
+            guard let self else { return }
+            
+            Task { @MainActor in
 				self.isPlaying = self.queuedSamples.isEmpty
 			}
 
-			self?._keepIsPlayingPropertyUpdated()
+			self._keepIsPlayingPropertyUpdated()
 		}
 	}
     
